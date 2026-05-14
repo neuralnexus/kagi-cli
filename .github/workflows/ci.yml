@@ -39,4 +39,4 @@ jobs:
         run: cargo check --locked
 
       - name: Run tests
-        run: cargo test -q --locked
+        run: cargo test -q --locked\n
