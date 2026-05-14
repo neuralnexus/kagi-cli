@@ -265,4 +265,4 @@ jobs:
             git -C "$BUCKET_DIR" add kagi.json
             git -C "$BUCKET_DIR" commit -m "chore: update kagi manifest for ${GITHUB_REF_NAME}"
             git -C "$BUCKET_DIR" push origin main
-          fi\n
+          fi
