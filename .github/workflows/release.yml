@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   verify:
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(((github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == format('refs/heads/{0}', github.event.repository.default_branch) && vars.NEXUS_RUNS_ON_LINUX) || '["ubuntu-26.04"]') }}
 
     steps:
       - name: Checkout
@@ -37,23 +37,38 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
+          - os: ubuntu-26.04
             target: x86_64-unknown-linux-gnu
             archive_ext: tar.gz
-          - os: ubuntu-latest
+            route_to_nexus: true
+            runner_variable: NEXUS_RUNS_ON_LINUX
+            fallback: ubuntu-26.04
+          - os: ubuntu-26.04
             target: aarch64-unknown-linux-gnu
             archive_ext: tar.gz
+            route_to_nexus: true
+            runner_variable: NEXUS_RUNS_ON_LINUX
+            fallback: ubuntu-26.04
           - os: macos-15-intel
             target: x86_64-apple-darwin
             archive_ext: tar.gz
+            route_to_nexus: true
+            runner_variable: NEXUS_RUNS_ON_MACOS_15_X64
+            fallback: macos-15-intel
           - os: macos-14
             target: aarch64-apple-darwin
             archive_ext: tar.gz
+            route_to_nexus: true
+            runner_variable: NEXUS_RUNS_ON_MACOS
+            fallback: macos-14
           - os: windows-latest
             target: x86_64-pc-windows-msvc
             archive_ext: zip
+            route_to_nexus: false
+            runner_variable: ""
+            fallback: windows-latest
 
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ fromJSON(((matrix.route_to_nexus && (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == format('refs/heads/{0}', github.event.repository.default_branch) && vars[matrix.runner_variable]) || format('["{0}"]', matrix.fallback))) }}
 
     steps:
       - name: Checkout
@@ -121,7 +136,7 @@ jobs:
 
   release:
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(((github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == format('refs/heads/{0}', github.event.repository.default_branch) && vars.NEXUS_RUNS_ON_LINUX) || '["ubuntu-26.04"]') }}
 
     steps:
       - name: Checkout
